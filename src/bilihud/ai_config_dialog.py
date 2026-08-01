@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QDialog,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
@@ -22,14 +23,14 @@ if TYPE_CHECKING:
 
 
 class AIConfigDialog(QDialog):
-    """DeepSeek / AI 智囊 API 与游戏知识库配置窗口"""
+    """DeepSeek / AI 智囊 API 与 Obsidian 游戏知识库配置窗口"""
 
     def __init__(self, parent: DanmakuWidget | None = None):
         super().__init__(parent)
         self.danmaku_widget = parent
-        self.setWindowTitle("DeepSeek AI 直播智囊与游戏知识库配置")
+        self.setWindowTitle("DeepSeek AI 智囊与 Obsidian 知识库配置")
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
-        self.setFixedSize(420, 430)
+        self.setFixedSize(450, 480)
 
         self.init_ui()
         self.load_settings()
@@ -108,13 +109,26 @@ class AIConfigDialog(QDialog):
         row_layout.addLayout(model_box)
         layout.addLayout(row_layout)
 
-        layout.addWidget(QLabel("🎮 主播游戏专属知识库 (每行一条攻略或带货卖点):"))
+        layout.addWidget(QLabel("📂 Obsidian 游戏攻略笔记文件夹 (含多篇 .md 档案):"))
+        vault_layout = QHBoxLayout()
+        vault_layout.setSpacing(6)
+
+        self.vault_input = QLineEdit()
+        self.vault_input.setPlaceholderText("例如: /home/user/Documents/Obsidian Vault/游戏攻略")
+
+        self.browse_btn = QPushButton("📁 浏览")
+        self.browse_btn.clicked.connect(self.browse_vault_folder)
+
+        vault_layout.addWidget(self.vault_input)
+        vault_layout.addWidget(self.browse_btn)
+        layout.addLayout(vault_layout)
+
+        layout.addWidget(QLabel("📝 常用随手记 / 核心规则 (每行一条):"))
         self.knowledge_input = QTextEdit()
         self.knowledge_input.setPlaceholderText(
             "例如:\n"
             "- 黑神话悟空虎先锋打法：先等它拍地，闪避后再用定身术。\n"
-            "- 显卡配置：i9-14900K + RTX 4090，4K高帧率绝无卡顿。\n"
-            "- 机械键盘：客制化红轴，手感轻盈声音清脆。"
+            "- 显卡配置：i9-14900K + RTX 4090，4K高帧率绝无卡顿。"
         )
         layout.addWidget(self.knowledge_input)
 
@@ -128,29 +142,38 @@ class AIConfigDialog(QDialog):
         btn_layout.addWidget(self.save_btn)
         layout.addLayout(btn_layout)
 
+    def browse_vault_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "选择 Obsidian 游戏攻略笔记文件夹", self.vault_input.text().strip())
+        if folder:
+            self.vault_input.setText(folder)
+
     def load_settings(self):
         config = load_config()
         key = config.get("ai_api_key", "")
         url = config.get("ai_base_url", "https://api.deepseek.com")
         model = config.get("ai_model", "deepseek-chat")
         kb = config.get("ai_knowledge_base", "")
+        vault = config.get("ai_vault_path", "")
 
         self.key_input.setText(key)
         self.url_input.setText(url)
         self.model_input.setText(model)
         self.knowledge_input.setPlainText(kb)
+        self.vault_input.setText(vault)
 
     def save_settings(self):
         key = self.key_input.text().strip()
         url = self.url_input.text().strip() or "https://api.deepseek.com"
         model = self.model_input.text().strip() or "deepseek-chat"
         kb = self.knowledge_input.toPlainText().strip()
+        vault = self.vault_input.text().strip()
 
         config = load_config()
         config["ai_api_key"] = key
         config["ai_base_url"] = url
         config["ai_model"] = model
         config["ai_knowledge_base"] = kb
+        config["ai_vault_path"] = vault
         save_config(config)
 
         if self.danmaku_widget is not None and hasattr(self.danmaku_widget, "ai_copilot_service"):
@@ -159,5 +182,6 @@ class AIConfigDialog(QDialog):
             srv.base_url = url
             srv.model = model
             srv.knowledge_base = kb
+            srv.vault_indexer.set_vault_path(vault)
 
         self.accept()

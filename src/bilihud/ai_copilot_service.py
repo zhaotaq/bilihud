@@ -10,6 +10,8 @@ from typing import Any
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
+from .obsidian_indexer import ObsidianVaultIndexer
+
 logger = logging.getLogger(__name__)
 
 FALLBACK_SUGGESTIONS = [
@@ -34,6 +36,7 @@ class AICopilotService(QObject):
         base_url: str = "https://api.deepseek.com",
         model: str = "deepseek-chat",
         knowledge_base: str = "",
+        vault_path: str = "",
         enabled: bool = True,
     ):
         super().__init__()
@@ -41,13 +44,13 @@ class AICopilotService(QObject):
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.knowledge_base = knowledge_base.strip()
+        self.vault_indexer = ObsidianVaultIndexer(vault_path)
         self.enabled = enabled
 
     def is_configured(self) -> bool:
         return bool(self.api_key)
 
     def process_message(self, message: Any) -> None:
-        """异步评估并处理弹幕消息，符合条件的触发 AI 提词"""
         if not self.enabled:
             return
 
@@ -63,7 +66,6 @@ class AICopilotService(QObject):
         asyncio.create_task(self.generate_suggestion(uname, text))
 
     async def generate_suggestion(self, uname: str, text: str) -> str:
-        """调用 DeepSeek API 或降级引擎生成 15 字口语化副屏提词"""
         if not self.is_configured():
             suggestion = self._get_fallback_suggestion(text)
             self.suggestion_generated.emit(uname, text, suggestion)
@@ -77,7 +79,11 @@ class AICopilotService(QObject):
                 "要求：绝对不超过15个字！不要标点符号堆砌！接地气！"
             )
             if self.knowledge_base:
-                system_prompt += f"\n\n【主播专属游戏/攻略知识库】:\n{self.knowledge_base}\n请优先结合上述知识库回答观众。"
+                system_prompt += f"\n\n【主播专属游戏/攻略知识库】:\n{self.knowledge_base}"
+
+            obsidian_context = self.vault_indexer.search_relevant_context(text)
+            if obsidian_context:
+                system_prompt += f"\n\n【Obsidian 攻略笔记匹配资料】:\n{obsidian_context}\n请优先结合上述笔记资料回答。"
 
             user_prompt = f"观众 [{uname}] 说：\"{text}\""
 
