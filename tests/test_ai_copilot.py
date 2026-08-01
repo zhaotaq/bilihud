@@ -3,7 +3,6 @@ import pytest
 from PyQt6.QtWidgets import QApplication
 from bilihud.ai_copilot_service import AICopilotService
 from bilihud.ai_teleprompter_widget import AITeleprompterWidget
-from bilihud.mock_generator import MockMessageGenerator
 
 
 @pytest.mark.asyncio
@@ -15,6 +14,12 @@ async def test_ai_copilot_fallback_generation():
 
     sug2 = await service.generate_suggestion("观众B", "这关怎么过啊？如何操作？")
     assert "细节" in sug2 or "操作" in sug2
+
+
+def test_ai_copilot_knowledge_base():
+    kb_text = "黑神话虎先锋打法：先等它拍地再用定身术。"
+    service = AICopilotService(api_key="sk-test", knowledge_base=kb_text)
+    assert service.knowledge_base == kb_text
 
 
 def test_ai_teleprompter_widget_ui():
