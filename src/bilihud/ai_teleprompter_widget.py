@@ -32,37 +32,39 @@ class AITeleprompterWidget(QFrame):
     def init_ui(self):
         self.setStyleSheet("""
             QFrame#teleprompter_card {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(30, 24, 54, 230), stop:1 rgba(20, 30, 48, 230));
-                border: 1px solid rgba(137, 180, 250, 80);
-                border-radius: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 rgba(30, 24, 54, 245), stop:1 rgba(20, 30, 48, 245));
+                border: 2px solid rgba(203, 166, 247, 120);
+                border-radius: 12px;
             }
             QLabel#title_lbl {
                 color: #cba6f7;
-                font-size: 11px;
+                font-size: 13px;
                 font-weight: 700;
             }
             QLabel#question_lbl {
-                color: #a6adc8;
-                font-size: 11px;
+                color: #b4befe;
+                font-size: 13px;
                 font-style: italic;
             }
             QLabel#suggestion_lbl {
                 color: #f9e2af;
-                font-size: 14px;
-                font-weight: 800;
+                font-size: 22px;
+                font-weight: 900;
                 font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+                line-height: 140%;
+                padding: 4px 0px;
             }
             QPushButton#copy_btn {
-                background: rgba(137, 180, 250, 30);
+                background: rgba(137, 180, 250, 40);
                 color: #89b4fa;
-                border: 1px solid rgba(137, 180, 250, 60);
-                border-radius: 5px;
-                padding: 2px 6px;
-                font-size: 10px;
+                border: 1px solid rgba(137, 180, 250, 80);
+                border-radius: 6px;
+                padding: 4px 10px;
+                font-size: 11px;
                 font-weight: bold;
             }
             QPushButton#copy_btn:hover {
-                background: rgba(137, 180, 250, 80);
+                background: rgba(137, 180, 250, 100);
                 color: #ffffff;
             }
         """)
