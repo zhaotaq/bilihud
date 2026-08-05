@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QLabel
 from bilihud.danmaku_widget import DanmakuWidget
 from bilihud.gift_banner_widget import GiftBannerWidget
 from bilihud.system_info_widget import SystemInfoWidget
@@ -20,8 +20,10 @@ def test_zone_layout_routing():
 
     gift_msg = MockMessageGenerator.create_mock_gift(user="大榜哥", gift_name="小电视", num=1)
     widget.add_message(gift_msg)
-    assert "大榜哥" in widget.gift_banner.text_lbl.text()
-    assert "小电视" in widget.gift_banner.text_lbl.text()
+    assert len(widget.gift_banner.cards) == 1
+    card_text = widget.gift_banner.cards[0].findChild(QLabel, "text_lbl").text()
+    assert "大榜哥" in card_text
+    assert "小电视" in card_text
 
     interact_msg = MockMessageGenerator.create_mock_interact(user="粉丝A", msg_type=1)
     widget.add_message(interact_msg)
